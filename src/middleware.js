@@ -20,9 +20,10 @@ module.exports = config => {
       debug('Sending message to Rasa', message.text)
       const options = {
         method: 'POST',
-        uri: `${config.rasa_uri}/parse`,
+        uri: `${config.rasa_uri}/webhooks/rest/webhook`,
         body: {
-          q: message.text
+          sender: message.user
+          message: message.text
         },
         json: true
       }
@@ -30,20 +31,10 @@ module.exports = config => {
       request(options)
         .then(response => {
           debug('Rasa response', response)
-          message.intent = response.intent
-          message.entities = response.entities
+          message.response = response[0]
           next()
         })
     },
-
-    hears: (patterns, message) => {
-      return patterns.some(pattern => {
-        if (message.intent.name === pattern) {
-          debug('Rasa intent matched hear pattern', message.intent, pattern)
-          return true
-        }
-      })
-    }
 
   }
   return middleware
